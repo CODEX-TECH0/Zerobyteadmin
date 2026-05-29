@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0B1220">
+    <title>Admin Dashboard - ZERØBYTE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0B1220;
+            --bg-secondary: #111827;
+            --bg-glass: rgba(17, 24, 39, 0.7);
+            --bg-glass-hover: rgba(31, 41, 55, 0.8);
+            --bg-glass-solid: rgba(17, 24, 39, 0.95);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --primary: #8B5CF6;
+            --primary-hover: #7C3AED;
+            --primary-soft: rgba(139, 92, 246, 0.15);
+            --success: #10B981;
+            --error: #EF4444;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #F8FAFC;
+            --bg-glass-solid: rgba(255, 255, 255, 0.95);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border-glass: rgba(0, 0, 0, 0.1);
+            --primary: #7C3AED;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            animation: rotate 40s linear infinite;
+        }
+        
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            animation: rotate-reverse 50s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        
+        /* Admin Layout */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar (Desktop) */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border-glass);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .sidebar-logo i {
+            margin-right: 0.5rem;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .sidebar-item:hover {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+        }
+        
+        .sidebar-item.active {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-right: 3px solid var(--primary);
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            font-size: 1rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 1.5rem;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: color 0.2s;
+        }
+        
+        .logout-btn:hover {
+            color: var(--error);
+        }
+        
+        /* Welcome Section */
+        .welcome-section {
+            background: linear-gradient(135deg, var(--primary-soft), rgba(139, 92, 246, 0.05));
+            border-radius: var(--radius-2xl);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .welcome-text h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .welcome-text p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        .date-display {
+            text-align: right;
+        }
+        
+        .date-main {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .date-day {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+        
+        /* Stats Grid - 5 cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-soft);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-soft);
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .stat-change.positive {
+            color: var(--success);
+        }
+        
+        .stat-change.negative {
+            color: var(--error);
+        }
+        
+        /* Charts Row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .chart-card {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1.25rem;
+        }
+        
+        .chart-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .chart-title span {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 220px;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+        }
+        
+        .bar-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .bar {
+            width: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--info));
+            border-radius: var(--radius-sm);
+            transition: height 0.5s ease;
+            min-height: 4px;
+        }
+        
+        .bar-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        
+        .dual-bar-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .dual-bars {
+            display: flex;
+            gap: 0.25rem;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .bar-posts {
+            width: 40%;
+            background: var(--primary);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            transition: height 0.5s ease;
+        }
+        
+        .bar-comments {
+            width: 40%;
+            background: var(--info);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            transition: height 0.5s ease;
+        }
+        
+        /* Two Column Grid */
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-card {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1.25rem;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .card-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .card-title i {
+            color: var(--primary);
+        }
+        
+        /* Activity List */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: var(--radius-lg);
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        
+        .activity-item:hover {
+            background: var(--bg-glass);
+        }
+        
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+        
+        .activity-details {
+            flex: 1;
+        }
+        
+        .activity-text {
+            font-size: 0.875rem;
+        }
+        
+        .activity-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        
+        /* Rank Lists */
+        .rank-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: var(--radius-lg);
+            transition: background 0.2s;
+        }
+        
+        .rank-item:hover {
+            background: var(--bg-glass);
+        }
+        
+        .rank-number {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .rank-info {
+            flex: 1;
+        }
+        
+        .rank-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .rank-stats {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        
+        .rank-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        /* System Status - GREEN INDICATORS */
+        .status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .status-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.up {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse-green 2s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status-dot.degraded {
+            background: var(--warning);
+            box-shadow: 0 0 8px var(--warning);
+        }
+        
+        .status-dot.down {
+            background: var(--error);
+            box-shadow: 0 0 8px var(--error);
+        }
+        
+        .status-text {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-text.up {
+            color: var(--success);
+        }
+        
+        .status-text.degraded {
+            color: var(--warning);
+        }
+        
+        .status-text.down {
+            color: var(--error);
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        .quick-btn {
+            padding: 0.625rem 1.25rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .quick-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Sidebar Overlay (Mobile) */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-glass);
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+                z-index: 200;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .welcome-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            .date-display {
+                text-align: center;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            .two-column-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg"></div>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-shield-alt"></i> ZERØBYTE<br>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">Admin Panel</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-item active" href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a class="sidebar-item" href="users.html"><i class="fas fa-users"></i> Users</a>
+            <a class="sidebar-item" href="moderation.html"><i class="fas fa-gavel"></i> Moderation</a>
+            <a class="sidebar-item" href="reports.html"><i class="fas fa-flag"></i> Reports</a>
+            <a class="sidebar-item" href="broadcasts.html"><i class="fas fa-bullhorn"></i> Broadcasts</a>
+            <a class="sidebar-item" href="verification.html"><i class="fas fa-check-circle"></i> Verification</a>
+            <a class="sidebar-item" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a class="sidebar-item" href="system-health.html"><i class="fas fa-heartbeat"></i> System Health</a>
+            <a class="sidebar-item" href="permissions.html"><i class="fas fa-key"></i> Permissions</a>
+        </nav>
+    </aside>
+    
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">Dashboard</h1>
+            <div class="admin-info">
+                <div class="admin-avatar" id="adminAvatar">A</div>
+                <span id="adminName">Admin</span>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="welcome-text">
+                <h2 id="welcomeMessage">Welcome back, Admin!</h2>
+                <p>Here's what's happening today.</p>
+            </div>
+            <div class="date-display">
+                <div class="date-main" id="currentDate"></div>
+                <div class="date-day" id="currentDay"></div>
+            </div>
+        </div>
+        
+        <!-- Stats Grid - 5 Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                </div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-change positive" id="userChange">← Loading</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
+                </div>
+                <div class="stat-value" id="totalPosts">0</div>
+                <div class="stat-label">Total Posts</div>
+                <div class="stat-change positive" id="postChange">← Loading</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-comments"></i></div>
+                </div>
+                <div class="stat-value" id="totalMessages">0</div>
+                <div class="stat-label">Total Messages</div>
+                <div class="stat-change positive" id="messageChange">← Loading</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-flag"></i></div>
+                </div>
+                <div class="stat-value" id="pendingReports">0</div>
+                <div class="stat-label">Pending Reports</div>
+                <div class="stat-change" id="reportChange">← Loading</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon"><i class="fas fa-circle"></i></div>
+                </div>
+                <div class="stat-value" id="onlineUsers">0</div>
+                <div class="stat-label">Online Users</div>
+                <div class="stat-change positive" id="onlineChange">🟢 active now</div>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="charts-row">
+            <!-- User Growth Chart -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <span><i class="fas fa-chart-line"></i> User Growth</span>
+                    <span>Last 7 days</span>
+                </div>
+                <div class="chart-container">
+                    <div class="bar-chart" id="userGrowthChart">
+                        <div class="bar-item"><div class="bar" style="height: 0px;"></div><div class="bar-label">Loading</div></div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; text-align: center; font-size: 0.75rem; color: var(--text-muted);">
+                    <span id="totalNewUsers">0</span> new users this week
+                </div>
+            </div>
+            
+            <!-- Content Activity Chart -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <span><i class="fas fa-chart-bar"></i> Content Activity</span>
+                    <span>Last 7 days</span>
+                </div>
+                <div class="chart-container">
+                    <div class="bar-chart" id="contentChart">
+                        <div class="dual-bar-item"><div class="dual-bars"><div class="bar-posts" style="height: 0px;"></div><div class="bar-comments" style="height: 0px;"></div></div><div class="bar-label">Loading</div></div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; font-size: 0.7rem;">
+                    <span><i class="fas fa-square" style="color: var(--primary);"></i> Posts</span>
+                    <span><i class="fas fa-square" style="color: var(--info);"></i> Comments</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Two Column Grid -->
+        <div class="two-column-grid">
+            <!-- Recent Activity -->
+            <div class="info-card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-history"></i> Recent Activity</div>
+                    <i class="fas fa-sync-alt" style="cursor: pointer; font-size: 0.75rem; color: var(--text-muted);" id="refreshActivity"></i>
+                </div>
+                <div class="activity-list" id="activityList">
+                    <div style="text-align: center; padding: 1rem;">Loading activity...</div>
+                </div>
+            </div>
+            
+            <!-- Top Channels -->
+            <div class="info-card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-broadcast-tower"></i> Top Channels</div>
+                </div>
+                <div class="rank-list" id="topChannelsList">
+                    <div style="text-align: center; padding: 1rem;">Loading channels...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Second Two Column Grid -->
+        <div class="two-column-grid">
+            <!-- Top Active Users -->
+            <div class="info-card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-trophy"></i> Top Active Users</div>
+                </div>
+                <div class="rank-list" id="topUsersList">
+                    <div style="text-align: center; padding: 1rem;">Loading users...</div>
+                </div>
+            </div>
+            
+            <!-- System Status & Quick Actions -->
+            <div class="info-card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-heartbeat"></i> System Status</div>
+                </div>
+                <div class="status-list" id="systemStatus">
+                    <div class="status-item">
+                        <div class="status-name"><div class="status-dot up"></div> Database</div>
+                        <span class="status-text up">Operational</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-name"><div class="status-dot up"></div> Realtime Service</div>
+                        <span class="status-text up">Operational</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-name"><div class="status-dot up"></div> Storage</div>
+                        <span class="status-text up">Operational</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-name"><div class="status-dot up"></div> Authentication</div>
+                        <span class="status-text up">Operational</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-name"><div class="status-dot up"></div> API Services</div>
+                        <span class="status-text up">Operational</span>
+                    </div>
+                </div>
+                
+                <div class="card-header" style="margin-top: 1rem;">
+                    <div class="card-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+                </div>
+                <div class="quick-actions">
+                    <button class="quick-btn" data-action="broadcast"><i class="fas fa-bullhorn"></i> Send Broadcast</button>
+                    <button class="quick-btn" data-action="users"><i class="fas fa-users"></i> Manage Users</button>
+                    <button class="quick-btn" data-action="reports"><i class="fas fa-flag"></i> Review Reports</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ========================================
+// ZERØBYTE - ADMIN DASHBOARD
+// GREEN STATUS INDICATORS RESTORED
+// ========================================
+
+(function() {
+    const SUPABASE_URL = 'https://tzfnmcbegbuwuzkqdphy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6Zm5tY2JlZ2J1d3V6a3FkcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDM3NTEsImV4cCI6MjA5NTI3OTc1MX0.RQJIfVX_HB-4mtcqmZHrowyFXyGJTxoL6wNj6Y5R6Hk';
+    
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUserId = null;
+    let currentUser = null;
+    
+    function showToast(message, type = 'info') {
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) existingToast.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        const icon = type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+        toast.innerHTML = `<i class="fas ${icon}" style="margin-right: 0.5rem;"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatTimeAgo(date) {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d ago`;
+        return new Date(date).toLocaleDateString();
+    }
+    
+    function formatDate() {
+        const date = new Date();
+        document.getElementById('currentDate').textContent = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('currentDay').textContent = date.toLocaleDateString('en-US', { weekday: 'long' });
+        const hour = date.getHours();
+        let greeting = 'Good morning';
+        if (hour >= 12) greeting = 'Good afternoon';
+        if (hour >= 18) greeting = 'Good evening';
+        if (currentUser) {
+            document.getElementById('welcomeMessage').textContent = `${greeting}, ${currentUser.display_name || currentUser.username || 'Admin'}!`;
+        }
+    }
+    
+    async function checkAuth() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'index.html';
+            return false;
+        }
+        currentUserId = session.user.id;
+        
+        const { data: user } = await _supabase.from('users').select('*').eq('id', currentUserId).single();
+        
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            showToast('Access denied. Admin privileges required.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return false;
+        }
+        
+        currentUser = user;
+        document.getElementById('adminName').textContent = user.display_name || user.username || 'Admin';
+        document.getElementById('adminAvatar').textContent = (user.display_name || user.username || 'A').charAt(0).toUpperCase();
+        return true;
+    }
+    
+    async function updateLastActive() {
+        await _supabase.from('users').update({ last_active_at: new Date().toISOString() }).eq('id', currentUserId);
+    }
+    
+    async function loadStats() {
+        try {
+            const { count: users } = await _supabase.from('users').select('*', { count: 'exact', head: true });
+            const { count: posts } = await _supabase.from('posts').select('*', { count: 'exact', head: true }).eq('status', 'active');
+            const { count: messages } = await _supabase.from('messages').select('*', { count: 'exact', head: true });
+            const { count: reports } = await _supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+            const { count: online } = await _supabase.from('users').select('*', { count: 'exact', head: true }).gte('last_active_at', fiveMinutesAgo);
+            
+            document.getElementById('totalUsers').textContent = (users || 0).toLocaleString();
+            document.getElementById('totalPosts').textContent = (posts || 0).toLocaleString();
+            document.getElementById('totalMessages').textContent = (messages || 0).toLocaleString();
+            document.getElementById('pendingReports').textContent = (reports || 0).toLocaleString();
+            document.getElementById('onlineUsers').textContent = (online || 0).toLocaleString();
+        } catch (error) {
+            console.error('Stats error:', error);
+        }
+    }
+    
+    async function loadUserGrowth() {
+        try {
+            const dates = [];
+            const counts = [];
+            let totalNew = 0;
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                date.setHours(0, 0, 0, 0);
+                const nextDate = new Date(date);
+                nextDate.setDate(date.getDate() + 1);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                dates.push(dateStr);
+                
+                const { count } = await _supabase
+                    .from('users')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', date.toISOString())
+                    .lt('created_at', nextDate.toISOString());
+                
+                const dayCount = count || 0;
+                counts.push(dayCount);
+                totalNew += dayCount;
+            }
+            
+            document.getElementById('totalNewUsers').textContent = totalNew.toLocaleString();
+            
+            const maxValue = Math.max(...counts, 1);
+            const container = document.getElementById('userGrowthChart');
+            container.innerHTML = dates.map((label, index) => {
+                const height = (counts[index] / maxValue) * 180;
+                return `<div class="bar-item"><div class="bar" style="height: ${height}px;" title="${counts[index]} users"></div><div class="bar-label">${label}</div></div>`;
+            }).join('');
+        } catch (error) {
+            console.error('User growth error:', error);
+        }
+    }
+    
+    async function loadContentActivity() {
+        try {
+            const dates = [];
+            const postsData = [];
+            const commentsData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                date.setHours(0, 0, 0, 0);
+                const nextDate = new Date(date);
+                nextDate.setDate(date.getDate() + 1);
+                const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                dates.push(dateStr);
+                
+                const { count: postsCount } = await _supabase
+                    .from('posts')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', date.toISOString())
+                    .lt('created_at', nextDate.toISOString());
+                
+                const { count: commentsCount } = await _supabase
+                    .from('comments')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', date.toISOString())
+                    .lt('created_at', nextDate.toISOString());
+                
+                postsData.push(postsCount || 0);
+                commentsData.push(commentsCount || 0);
+            }
+            
+            const maxValue = Math.max(...postsData, ...commentsData, 1);
+            const container = document.getElementById('contentChart');
+            container.innerHTML = dates.map((label, index) => {
+                const postsHeight = (postsData[index] / maxValue) * 150;
+                const commentsHeight = (commentsData[index] / maxValue) * 150;
+                return `<div class="dual-bar-item"><div class="dual-bars"><div class="bar-posts" style="height: ${postsHeight}px;" title="${postsData[index]} posts"></div><div class="bar-comments" style="height: ${commentsHeight}px;" title="${commentsData[index]} comments"></div></div><div class="bar-label">${label}</div></div>`;
+            }).join('');
+        } catch (error) {
+            console.error('Content activity error:', error);
+        }
+    }
+    
+    async function loadRecentActivity() {
+        try {
+            const { data: recentPosts } = await _supabase
+                .from('posts')
+                .select('*, users!posts_user_id_fkey(username, display_name)')
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            const container = document.getElementById('activityList');
+            if (!recentPosts || recentPosts.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 1rem;">No recent activity</div>';
+                return;
+            }
+            
+            container.innerHTML = recentPosts.map(post => {
+                const displayName = post.users?.display_name || post.users?.username || 'User';
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon"><i class="fas fa-newspaper"></i></div>
+                        <div class="activity-details">
+                            <div class="activity-text"><strong>${escapeHtml(displayName)}</strong> created a new post</div>
+                            <div class="activity-time">${formatTimeAgo(post.created_at)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Recent activity error:', error);
+        }
+    }
+    
+    async function loadTopChannels() {
+        try {
+            const { data, error } = await _supabase
+                .from('channels')
+                .select('name, member_count')
+                .eq('status', 'active')
+                .order('member_count', { ascending: false })
+                .limit(5);
+            
+            const container = document.getElementById('topChannelsList');
+            if (error || !data || data.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 1rem;">No channels yet</div>';
+                return;
+            }
+            
+            container.innerHTML = data.map((channel, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                return `
+                    <div class="rank-item">
+                        <div class="rank-number">${medal}</div>
+                        <div class="rank-info">
+                            <div class="rank-name">${escapeHtml(channel.name)}</div>
+                            <div class="rank-stats"><i class="fas fa-users"></i> ${(channel.member_count || 0).toLocaleString()} followers</div>
+                        </div>
+                        <div class="rank-value">${(channel.member_count || 0).toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Top channels error:', error);
+        }
+    }
+    
+    async function loadTopUsers() {
+        try {
+            const { data: users } = await _supabase.from('users').select('id, username, display_name').limit(10);
+            const usersWithCounts = [];
+            
+            for (const user of (users || [])) {
+                const { count } = await _supabase
+                    .from('posts')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id)
+                    .eq('status', 'active');
+                usersWithCounts.push({ ...user, post_count: count || 0 });
+            }
+            
+            usersWithCounts.sort((a, b) => b.post_count - a.post_count);
+            const topUsers = usersWithCounts.slice(0, 5);
+            
+            const container = document.getElementById('topUsersList');
+            if (topUsers.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 1rem;">No users yet</div>';
+                return;
+            }
+            
+            container.innerHTML = topUsers.map((user, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                const displayName = user.display_name || user.username;
+                return `
+                    <div class="rank-item">
+                        <div class="rank-number">${medal}</div>
+                        <div class="rank-info">
+                            <div class="rank-name">${escapeHtml(displayName)}</div>
+                            <div class="rank-stats"><i class="fas fa-newspaper"></i> ${user.post_count.toLocaleString()} posts</div>
+                        </div>
+                        <div class="rank-value">${user.post_count.toLocaleString()}</div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Top users error:', error);
+            document.getElementById('topUsersList').innerHTML = '<div style="text-align: center; padding: 1rem;">Error loading users</div>';
+        }
+    }
+    
+    function setupQuickActions() {
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                if (action === 'broadcast') window.location.href = 'broadcasts.html';
+                else if (action === 'users') window.location.href = 'users.html';
+                else if (action === 'reports') window.location.href = 'reports.html';
+            });
+        });
+    }
+    
+    async function refreshAllData() {
+        await updateLastActive();
+        await loadStats();
+        await loadUserGrowth();
+        await loadContentActivity();
+        await loadRecentActivity();
+        await loadTopChannels();
+        await loadTopUsers();
+    }
+    
+    // Navigation
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const href = item.getAttribute('href');
+            if (href && href !== 'dashboard.html') {
+                window.location.href = href;
+            }
+        });
+    });
+    
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    mobileMenuBtn?.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        sidebarOverlay.classList.add('show');
+    });
+    
+    sidebarOverlay?.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('show');
+    });
+    
+    // Refresh button
+    document.getElementById('refreshActivity')?.addEventListener('click', () => {
+        refreshAllData();
+        showToast('Dashboard refreshed', 'success');
+    });
+    
+    // Logout
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        await _supabase.auth.signOut();
+        window.location.href = 'index.html';
+    });
+    
+    // Initialization
+    async function init() {
+        const authed = await checkAuth();
+        if (!authed) return;
+        
+        formatDate();
+        await refreshAllData();
+        setupQuickActions();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(refreshAllData, 30000);
+    }
+    
+    init();
+})();
+</script>
+</body>
+</html>
