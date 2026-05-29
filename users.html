@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Users - Admin | ZERØBYTE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0B1220;
+            --bg-secondary: #111827;
+            --bg-glass: rgba(17, 24, 39, 0.7);
+            --bg-glass-hover: rgba(31, 41, 55, 0.8);
+            --bg-glass-solid: rgba(17, 24, 39, 0.95);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --primary: #8B5CF6;
+            --primary-hover: #7C3AED;
+            --primary-soft: rgba(139, 92, 246, 0.15);
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #F8FAFC;
+            --bg-glass-solid: rgba(255, 255, 255, 0.95);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border-glass: rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            animation: rotate 40s linear infinite;
+        }
+        
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            animation: rotate-reverse 50s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        
+        .admin-layout { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 260px;
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border-glass);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        
+        .sidebar-header { padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-subtle); }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--info)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sidebar-nav { padding: 1rem 0; }
+        .sidebar-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .sidebar-item:hover { background: var(--bg-glass); color: var(--text-primary); }
+        .sidebar-item.active { background: var(--primary-soft); color: var(--primary); border-right: 3px solid var(--primary); }
+        .sidebar-item i { width: 20px; font-size: 1rem; }
+        
+        .main-content { flex: 1; margin-left: 260px; padding: 1.5rem; }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .page-title { font-size: 1.5rem; font-weight: 700; }
+        .admin-info { display: flex; align-items: center; gap: 1rem; }
+        .logout-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem; transition: color 0.2s; }
+        .logout-btn:hover { color: var(--error); }
+        
+        .filters-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            color: var(--text-primary);
+        }
+        
+        .filter-select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        
+        .users-table-container {
+            background: var(--bg-glass-solid);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            overflow-x: auto;
+        }
+        
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .users-table th, .users-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .users-table th { color: var(--text-muted); font-weight: 600; font-size: 0.875rem; }
+        .users-table tr:hover { background: var(--bg-glass); }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .role-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .role-badge.superadmin { background: rgba(139, 92, 246, 0.2); color: var(--primary); }
+        .role-badge.admin { background: rgba(59, 130, 246, 0.2); color: var(--info); }
+        .role-badge.moderator { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .role-badge.user { background: rgba(107, 114, 128, 0.2); color: var(--text-muted); }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .status-badge.active { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .status-badge.banned { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+        
+        .action-buttons { display: flex; gap: 0.5rem; }
+        .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; transition: color 0.2s; }
+        .action-btn:hover { color: var(--primary); }
+        .action-btn.danger:hover { color: var(--error); }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .modal.show { visibility: visible; opacity: 1; }
+        
+        .modal-content {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .form-select, .form-input { width: 100%; padding: 0.75rem; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-lg); color: var(--text-primary); }
+        .modal-btn { width: 100%; padding: 0.75rem; background: var(--primary); border: none; border-radius: var(--radius-lg); color: white; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+        .modal-btn.danger { background: var(--error); }
+        
+        .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1.5rem; }
+        .page-btn { padding: 0.5rem 1rem; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-md); color: var(--text-secondary); cursor: pointer; }
+        .page-btn.active { background: var(--primary); color: white; }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 280px; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-menu-btn { display: block; }
+            .filters-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg"></div>
+
+<div class="admin-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-shield-alt"></i> ZERØBYTE<br><span style="font-size: 0.75rem;">Admin Panel</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-item" data-page="dashboard" href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a class="sidebar-item active" data-page="users" href="users.html"><i class="fas fa-users"></i> Users</a>
+            <a class="sidebar-item" data-page="moderation" href="moderation.html"><i class="fas fa-gavel"></i> Moderation</a>
+            <a class="sidebar-item" data-page="reports" href="reports.html"><i class="fas fa-flag"></i> Reports</a>
+            <a class="sidebar-item" data-page="broadcasts" href="broadcasts.html"><i class="fas fa-bullhorn"></i> Broadcasts</a>
+            <a class="sidebar-item" data-page="verification" href="verification.html"><i class="fas fa-check-circle"></i> Verification</a>
+            <a class="sidebar-item" data-page="analytics" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a class="sidebar-item" data-page="system-health" href="system-health.html"><i class="fas fa-heartbeat"></i> System Health</a>
+            <a class="sidebar-item" data-page="permissions" href="permissions.html"><i class="fas fa-key"></i> Permissions</a>
+        </nav>
+    </aside>
+    
+    <main class="main-content">
+        <div class="top-bar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">User Management</h1>
+            <div class="admin-info">
+                <span id="adminName">Admin</span>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+        
+        <div class="filters-bar">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by username, email...">
+            <select id="roleFilter" class="filter-select">
+                <option value="all">All Roles</option>
+                <option value="user">Users</option>
+                <option value="moderator">Moderators</option>
+                <option value="admin">Admins</option>
+                <option value="superadmin">Super Admins</option>
+            </select>
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="banned">Banned</option>
+            </select>
+        </div>
+        
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                    <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="usersTableBody"><tr><td colspan="6" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+    </main>
+</div>
+
+<div class="modal" id="userModal"><div class="modal-content"><div class="modal-header"><h3 id="modalTitle">User Actions</h3><button class="modal-close" id="closeModal">&times;</button></div><div id="modalBody"></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+    const SUPABASE_URL = 'https://tzfnmcbegbuwuzkqdphy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6Zm5tY2JlZ2J1d3V6a3FkcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDM3NTEsImV4cCI6MjA5NTI3OTc1MX0.RQJIfVX_HB-4mtcqmZHrowyFXyGJTxoL6wNj6Y5R6Hk';
+    
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUserId = null, users = [], currentPage = 1;
+    const usersPerPage = 20;
+    
+    function showToast(m, t) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fas ${t === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${m}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    
+    async function checkAuth() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'index.html'; return false; }
+        currentUserId = session.user.id;
+        const { data: user } = await _supabase.from('users').select('*').eq('id', currentUserId).single();
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            showToast('Access denied.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return false;
+        }
+        document.getElementById('adminName').textContent = user.display_name || user.username || 'Admin';
+        return true;
+    }
+    
+    async function loadUsers() {
+        let query = _supabase.from('users').select('*').order('created_at', { ascending: false });
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        if (search) query = query.or(`username.ilike.%${search}%,email.ilike.%${search}%,display_name.ilike.%${search}%`);
+        const role = document.getElementById('roleFilter').value;
+        if (role !== 'all') query = query.eq('role', role);
+        const status = document.getElementById('statusFilter').value;
+        if (status !== 'all') query = query.eq('is_banned', status === 'banned');
+        const { data, error } = await query;
+        if (error) return;
+        users = data;
+        renderUsers();
+    }
+    
+    function renderUsers() {
+        const start = (currentPage - 1) * usersPerPage;
+        const pageUsers = users.slice(start, start + usersPerPage);
+        const tbody = document.getElementById('usersTableBody');
+        if (pageUsers.length === 0) { tbody.innerHTML = '<tr><td colspan="6">No users found</td></tr>'; return; }
+        tbody.innerHTML = pageUsers.map(u => {
+            const roleClass = u.role === 'superadmin' ? 'superadmin' : (u.role === 'admin' ? 'admin' : (u.role === 'moderator' ? 'moderator' : 'user'));
+            return `<tr><td><div style="display:flex;align-items:center;gap:0.75rem;"><div class="user-avatar">${u.avatar_url ? `<img src="${u.avatar_url}">` : (u.display_name || u.username || 'U').charAt(0).toUpperCase()}</div><div><div style="font-weight:600;">${escapeHtml(u.display_name || u.username)}</div><div style="font-size:0.75rem;">@${escapeHtml(u.username)}</div></div></div></td>
+            <td>${escapeHtml(u.email)}</td><td><span class="role-badge ${roleClass}">${u.role === 'superadmin' ? 'Super Admin' : u.role.charAt(0).toUpperCase() + u.role.slice(1)}</span></td>
+            <td><span class="status-badge ${u.is_banned ? 'banned' : 'active'}">${u.is_banned ? 'Banned' : 'Active'}</span></td>
+            <td>${new Date(u.created_at).toLocaleDateString()}</td>
+            <td><div class="action-buttons"><button class="action-btn" data-action="edit" data-id="${u.id}" title="Edit Role"><i class="fas fa-user-tag"></i></button>${!u.is_banned ? `<button class="action-btn danger" data-action="ban" data-id="${u.id}" title="Ban"><i class="fas fa-ban"></i></button>` : `<button class="action-btn" data-action="unban" data-id="${u.id}" title="Unban"><i class="fas fa-check-circle"></i></button>`}<button class="action-btn danger" data-action="delete" data-id="${u.id}" title="Delete"><i class="fas fa-trash"></i></button></div></td></tr>`;
+        }).join('');
+        const totalPages = Math.ceil(users.length / usersPerPage);
+        const pagination = document.getElementById('pagination');
+        if (totalPages <= 1) { pagination.innerHTML = ''; return; }
+        let html = '';
+        for (let i = 1; i <= totalPages; i++) html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        pagination.innerHTML = html;
+        document.querySelectorAll('.page-btn').forEach(btn => btn.addEventListener('click', () => { currentPage = parseInt(btn.dataset.page); renderUsers(); }));
+        document.querySelectorAll('[data-action="edit"]').forEach(btn => btn.addEventListener('click', () => editUserRole(btn.dataset.id)));
+        document.querySelectorAll('[data-action="ban"]').forEach(btn => btn.addEventListener('click', () => banUser(btn.dataset.id)));
+        document.querySelectorAll('[data-action="unban"]').forEach(btn => btn.addEventListener('click', () => unbanUser(btn.dataset.id)));
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', () => deleteUser(btn.dataset.id)));
+    }
+    
+    async function editUserRole(userId) {
+        const user = users.find(u => u.id === userId);
+        const modal = document.getElementById('userModal');
+        document.getElementById('modalTitle').innerHTML = `Edit Role: ${user.display_name || user.username}`;
+        document.getElementById('modalBody').innerHTML = `<div class="form-group"><label class="form-label">Select Role</label><select id="newRole" class="form-select"><option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option><option value="moderator" ${user.role === 'moderator' ? 'selected' : ''}>Moderator</option><option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option><option value="superadmin" ${user.role === 'superadmin' ? 'selected' : ''}>Super Admin</option></select></div><button class="modal-btn" id="saveRoleBtn">Save</button>`;
+        modal.classList.add('show');
+        document.getElementById('saveRoleBtn').onclick = async () => {
+            const newRole = document.getElementById('newRole').value;
+            await _supabase.from('users').update({ role: newRole }).eq('id', userId);
+            showToast('Role updated', 'success');
+            modal.classList.remove('show');
+            loadUsers();
+        };
+    }
+    
+    async function banUser(userId) {
+        const user = users.find(u => u.id === userId);
+        const modal = document.getElementById('userModal');
+        document.getElementById('modalTitle').innerHTML = `Ban User: ${user.display_name || user.username}`;
+        document.getElementById('modalBody').innerHTML = `<div class="form-group"><label class="form-label">Reason</label><input type="text" id="banReason" class="form-input" placeholder="Enter reason"></div><div class="form-group"><label class="form-label">Duration</label><select id="banDuration" class="form-select"><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="0">Permanent</option></select></div><button class="modal-btn danger" id="confirmBanBtn">Ban User</button>`;
+        modal.classList.add('show');
+        document.getElementById('confirmBanBtn').onclick = async () => {
+            const reason = document.getElementById('banReason').value || 'No reason';
+            const durationDays = parseInt(document.getElementById('banDuration').value);
+            await _supabase.from('users').update({ is_banned: true, ban_reason: reason, banned_until: durationDays > 0 ? new Date(Date.now() + durationDays * 86400000).toISOString() : null }).eq('id', userId);
+            showToast('User banned', 'success');
+            modal.classList.remove('show');
+            loadUsers();
+        };
+    }
+    
+    async function unbanUser(userId) {
+        await _supabase.from('users').update({ is_banned: false, ban_reason: null, banned_until: null }).eq('id', userId);
+        showToast('User unbanned', 'success');
+        loadUsers();
+    }
+    
+    async function deleteUser(userId) {
+        if (!confirm('Permanently delete this user? This cannot be undone.')) return;
+        await _supabase.from('users').delete().eq('id', userId);
+        showToast('User deleted', 'success');
+        loadUsers();
+    }
+    
+    document.getElementById('searchInput')?.addEventListener('input', () => { currentPage = 1; loadUsers(); });
+    document.getElementById('roleFilter')?.addEventListener('change', () => { currentPage = 1; loadUsers(); });
+    document.getElementById('statusFilter')?.addEventListener('change', () => { currentPage = 1; loadUsers(); });
+    document.getElementById('closeModal')?.addEventListener('click', () => document.getElementById('userModal').classList.remove('show'));
+    document.querySelectorAll('.sidebar-item').forEach(i => { i.addEventListener('click', () => { const p = i.dataset.page; if (p && p !== 'users') window.location.href = `${p}.html`; }); });
+    
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn'), sidebar = document.getElementById('sidebar');
+    mobileMenuBtn?.addEventListener('click', () => sidebar.classList.toggle('open'));
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await _supabase.auth.signOut(); window.location.href = 'index.html'; });
+    
+    async function init() { if (!await checkAuth()) return; loadUsers(); }
+    init();
+})();
+</script>
+</body>
+</html>

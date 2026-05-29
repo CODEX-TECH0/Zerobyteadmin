@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Reports - Admin | ZERØBYTE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0B1220;
+            --bg-secondary: #111827;
+            --bg-glass: rgba(17, 24, 39, 0.7);
+            --bg-glass-hover: rgba(31, 41, 55, 0.8);
+            --bg-glass-solid: rgba(17, 24, 39, 0.95);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --primary: #8B5CF6;
+            --primary-hover: #7C3AED;
+            --primary-soft: rgba(139, 92, 246, 0.15);
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #F8FAFC;
+            --bg-glass-solid: rgba(255, 255, 255, 0.95);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border-glass: rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            animation: rotate 40s linear infinite;
+        }
+        
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            animation: rotate-reverse 50s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        
+        .admin-layout { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 260px;
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border-glass);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        
+        .sidebar-header { padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-subtle); }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--info)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sidebar-nav { padding: 1rem 0; }
+        .sidebar-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .sidebar-item:hover { background: var(--bg-glass); color: var(--text-primary); }
+        .sidebar-item.active { background: var(--primary-soft); color: var(--primary); border-right: 3px solid var(--primary); }
+        .sidebar-item i { width: 20px; font-size: 1rem; }
+        
+        .main-content { flex: 1; margin-left: 260px; padding: 1.5rem; }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .page-title { font-size: 1.5rem; font-weight: 700; }
+        .admin-info { display: flex; align-items: center; gap: 1rem; }
+        .logout-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem; transition: color 0.2s; }
+        .logout-btn:hover { color: var(--error); }
+        
+        /* Filters */
+        .filters-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        
+        /* Report Cards */
+        .report-card {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .report-card:hover {
+            border-color: var(--primary-soft);
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .report-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-xl);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .report-type.spam { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .report-type.harassment { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .report-type.impersonation { background: rgba(139, 92, 246, 0.2); color: var(--primary); }
+        
+        .report-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-xl);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .report-status.pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .report-status.resolved { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .report-status.dismissed { background: rgba(107, 114, 128, 0.2); color: var(--text-muted); }
+        
+        .report-details {
+            margin-bottom: 1rem;
+        }
+        
+        .report-reason {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .report-description {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .report-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--radius-xl);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-btn.resolve {
+            background: var(--success);
+            color: white;
+        }
+        
+        .action-btn.dismiss {
+            background: var(--text-muted);
+            color: white;
+        }
+        
+        .action-btn.delete {
+            background: var(--error);
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 280px; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-menu-btn { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg"></div>
+
+<div class="admin-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-shield-alt"></i> ZERØBYTE<br><span style="font-size: 0.75rem;">Admin Panel</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-item" data-page="dashboard" href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a class="sidebar-item" data-page="users" href="users.html"><i class="fas fa-users"></i> Users</a>
+            <a class="sidebar-item" data-page="moderation" href="moderation.html"><i class="fas fa-gavel"></i> Moderation</a>
+            <a class="sidebar-item active" data-page="reports"><i class="fas fa-flag"></i> Reports</a>
+            <a class="sidebar-item" data-page="broadcasts" href="broadcasts.html"><i class="fas fa-bullhorn"></i> Broadcasts</a>
+            <a class="sidebar-item" data-page="verification" href="verification.html"><i class="fas fa-check-circle"></i> Verification</a>
+            <a class="sidebar-item" data-page="analytics" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a class="sidebar-item" data-page="system-health" href="system-health.html"><i class="fas fa-heartbeat"></i> System Health</a>
+            <a class="sidebar-item" data-page="permissions" href="permissions.html"><i class="fas fa-key"></i> Permissions</a>
+        </nav>
+    </aside>
+    
+    <main class="main-content">
+        <div class="top-bar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">Report Management</h1>
+            <div class="admin-info">
+                <span id="adminName">Admin</span>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+        
+        <div class="filters-bar">
+            <select id="statusFilter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="resolved">Resolved</option>
+                <option value="dismissed">Dismissed</option>
+            </select>
+            <select id="typeFilter" class="filter-select">
+                <option value="all">All Types</option>
+                <option value="spam">Spam</option>
+                <option value="harassment">Harassment</option>
+                <option value="hate_speech">Hate Speech</option>
+                <option value="impersonation">Impersonation</option>
+                <option value="nsfw">NSFW</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        
+        <div id="reportsContainer">
+            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Loading reports...</div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+    const SUPABASE_URL = 'https://tzfnmcbegbuwuzkqdphy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6Zm5tY2JlZ2J1d3V6a3FkcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDM3NTEsImV4cCI6MjA5NTI3OTc1MX0.RQJIfVX_HB-4mtcqmZHrowyFXyGJTxoL6wNj6Y5R6Hk';
+    
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUserId = null;
+    
+    function showToast(message, type = 'info') {
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) existingToast.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        const icon = type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+        toast.innerHTML = `<i class="fas ${icon}" style="margin-right: 0.5rem;"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatDate(date) {
+        return new Date(date).toLocaleDateString();
+    }
+    
+    async function checkAuth() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'index.html'; return false; }
+        currentUserId = session.user.id;
+        const { data: user } = await _supabase.from('users').select('*').eq('id', currentUserId).single();
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            showToast('Access denied.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return false;
+        }
+        document.getElementById('adminName').textContent = user.display_name || user.username || 'Admin';
+        return true;
+    }
+    
+    async function loadReports() {
+        let query = _supabase.from('reports').select('*, reporter:users!reports_reporter_id_fkey(id, username, display_name)').order('created_at', { ascending: false });
+        
+        const statusFilter = document.getElementById('statusFilter').value;
+        if (statusFilter !== 'all') {
+            query = query.eq('status', statusFilter);
+        }
+        
+        const typeFilter = document.getElementById('typeFilter').value;
+        if (typeFilter !== 'all') {
+            query = query.eq('reason', typeFilter);
+        }
+        
+        const { data: reports, error } = await query;
+        
+        const container = document.getElementById('reportsContainer');
+        if (error) { container.innerHTML = '<div class="empty-state">Error loading reports</div>'; return; }
+        if (!reports || reports.length === 0) { container.innerHTML = '<div class="empty-state">No reports found</div>'; return; }
+        
+        container.innerHTML = reports.map(report => `
+            <div class="report-card" data-id="${report.id}">
+                <div class="report-header">
+                    <span class="report-type ${report.reason}">${report.reason.toUpperCase()}</span>
+                    <span class="report-status ${report.status}">${report.status.toUpperCase()}</span>
+                </div>
+                <div class="report-details">
+                    <div class="report-reason">Reported by: ${escapeHtml(report.reporter?.display_name || report.reporter?.username || 'Unknown')}</div>
+                    <div class="report-description">${escapeHtml(report.description || 'No description provided')}</div>
+                    <div class="report-meta">
+                        <span><i class="fas fa-clock"></i> ${formatDate(report.created_at)}</span>
+                        <span><i class="fas fa-tag"></i> Target: ${report.target_type}</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    ${report.status === 'pending' ? `
+                        <button class="action-btn resolve" data-action="resolve" data-id="${report.id}"><i class="fas fa-check"></i> Resolve</button>
+                        <button class="action-btn dismiss" data-action="dismiss" data-id="${report.id}"><i class="fas fa-times"></i> Dismiss</button>
+                    ` : ''}
+                    <button class="action-btn delete" data-action="delete-target" data-target-id="${report.target_id}" data-target-type="${report.target_type}"><i class="fas fa-trash"></i> Delete Content</button>
+                </div>
+            </div>
+        `).join('');
+        
+        document.querySelectorAll('[data-action="resolve"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                await _supabase.from('reports').update({ status: 'resolved', resolved_by: currentUserId, resolved_at: new Date().toISOString() }).eq('id', id);
+                showToast('Report resolved', 'success');
+                loadReports();
+            });
+        });
+        
+        document.querySelectorAll('[data-action="dismiss"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                await _supabase.from('reports').update({ status: 'dismissed', resolved_by: currentUserId, resolved_at: new Date().toISOString() }).eq('id', id);
+                showToast('Report dismissed', 'success');
+                loadReports();
+            });
+        });
+        
+        document.querySelectorAll('[data-action="delete-target"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Delete the reported content?')) return;
+                const targetId = btn.dataset.targetId;
+                const targetType = btn.dataset.targetType;
+                const table = targetType === 'post' ? 'posts' : (targetType === 'comment' ? 'comments' : (targetType === 'user' ? 'users' : null));
+                if (table) {
+                    await _supabase.from(table).update({ status: 'deleted' }).eq('id', targetId);
+                    showToast('Content deleted', 'success');
+                    loadReports();
+                }
+            });
+        });
+    }
+    
+    document.getElementById('statusFilter')?.addEventListener('change', loadReports);
+    document.getElementById('typeFilter')?.addEventListener('change', loadReports);
+    
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const page = item.dataset.page;
+            if (page && page !== 'reports') {
+                window.location.href = `${page}.html`;
+            }
+        });
+    });
+    
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    mobileMenuBtn?.addEventListener('click', () => sidebar.classList.toggle('open'));
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        await _supabase.auth.signOut();
+        window.location.href = 'index.html';
+    });
+    
+    async function init() {
+        if (!await checkAuth()) return;
+        await loadReports();
+    }
+    init();
+})();
+</script>
+</body>
+</html>

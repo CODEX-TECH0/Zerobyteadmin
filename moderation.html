@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Moderation - Admin | ZERØBYTE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0B1220;
+            --bg-secondary: #111827;
+            --bg-glass: rgba(17, 24, 39, 0.7);
+            --bg-glass-hover: rgba(31, 41, 55, 0.8);
+            --bg-glass-solid: rgba(17, 24, 39, 0.95);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --primary: #8B5CF6;
+            --primary-hover: #7C3AED;
+            --primary-soft: rgba(139, 92, 246, 0.15);
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #F8FAFC;
+            --bg-glass-solid: rgba(255, 255, 255, 0.95);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border-glass: rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            animation: rotate 40s linear infinite;
+        }
+        
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            animation: rotate-reverse 50s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        
+        /* Admin Layout */
+        .admin-layout { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 260px;
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border-glass);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        
+        .sidebar-header { padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-subtle); }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--info)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sidebar-nav { padding: 1rem 0; }
+        .sidebar-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .sidebar-item:hover { background: var(--bg-glass); color: var(--text-primary); }
+        .sidebar-item.active { background: var(--primary-soft); color: var(--primary); border-right: 3px solid var(--primary); }
+        .sidebar-item i { width: 20px; font-size: 1rem; }
+        
+        .main-content { flex: 1; margin-left: 260px; padding: 1.5rem; }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .page-title { font-size: 1.5rem; font-weight: 700; }
+        .admin-info { display: flex; align-items: center; gap: 1rem; }
+        .logout-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem; transition: color 0.2s; }
+        .logout-btn:hover { color: var(--error); }
+        
+        /* Tabs */
+        .mod-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--bg-glass-solid);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            padding: 0.5rem;
+        }
+        
+        .mod-tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            background: none;
+            border: none;
+            border-radius: var(--radius-lg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .mod-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Content Cards */
+        .content-card {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .content-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .author-avatar {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .author-name {
+            font-weight: 600;
+        }
+        
+        .author-username {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .content-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .content-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .content-body {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--radius-xl);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .action-btn.approve {
+            background: var(--success);
+            color: white;
+        }
+        
+        .action-btn.hide {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .action-btn.delete {
+            background: var(--error);
+            color: white;
+        }
+        
+        .action-btn.warn {
+            background: var(--info);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); width: 280px; z-index: 200; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .mobile-menu-btn { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg"></div>
+
+<div class="admin-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="fas fa-shield-alt"></i> ZERØBYTE<br><span style="font-size: 0.75rem;">Admin Panel</span></div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-item" data-page="dashboard" href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a class="sidebar-item" data-page="users" href="users.html"><i class="fas fa-users"></i> Users</a>
+            <a class="sidebar-item active" data-page="moderation"><i class="fas fa-gavel"></i> Moderation</a>
+            <a class="sidebar-item" data-page="reports" href="reports.html"><i class="fas fa-flag"></i> Reports</a>
+            <a class="sidebar-item" data-page="broadcasts" href="broadcasts.html"><i class="fas fa-bullhorn"></i> Broadcasts</a>
+            <a class="sidebar-item" data-page="verification" href="verification.html"><i class="fas fa-check-circle"></i> Verification</a>
+            <a class="sidebar-item" data-page="analytics" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a class="sidebar-item" data-page="system-health" href="system-health.html"><i class="fas fa-heartbeat"></i> System Health</a>
+            <a class="sidebar-item" data-page="permissions" href="permissions.html"><i class="fas fa-key"></i> Permissions</a>
+        </nav>
+    </aside>
+    
+    <main class="main-content">
+        <div class="top-bar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">Content Moderation</h1>
+            <div class="admin-info">
+                <span id="adminName">Admin</span>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+        
+        <div class="mod-tabs">
+            <button class="mod-tab active" data-type="posts">Posts</button>
+            <button class="mod-tab" data-type="comments">Comments</button>
+        </div>
+        
+        <div id="contentContainer">
+            <div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+    const SUPABASE_URL = 'https://tzfnmcbegbuwuzkqdphy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6Zm5tY2JlZ2J1d3V6a3FkcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDM3NTEsImV4cCI6MjA5NTI3OTc1MX0.RQJIfVX_HB-4mtcqmZHrowyFXyGJTxoL6wNj6Y5R6Hk';
+    
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUserId = null;
+    let currentType = 'posts';
+    
+    function showToast(message, type = 'info') {
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) existingToast.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        const icon = type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+        toast.innerHTML = `<i class="fas ${icon}" style="margin-right: 0.5rem;"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatTimeAgo(date) {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+        if (seconds < 60) return 'just now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d ago`;
+        return new Date(date).toLocaleDateString();
+    }
+    
+    async function checkAuth() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'index.html'; return false; }
+        currentUserId = session.user.id;
+        const { data: user } = await _supabase.from('users').select('*').eq('id', currentUserId).single();
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            showToast('Access denied.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return false;
+        }
+        document.getElementById('adminName').textContent = user.display_name || user.username || 'Admin';
+        return true;
+    }
+    
+    async function loadContent() {
+        const container = document.getElementById('contentContainer');
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        
+        if (currentType === 'posts') {
+            const { data: posts, error } = await _supabase
+                .from('posts')
+                .select('*, users!posts_user_id_fkey(id, username, display_name, avatar_url)')
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(50);
+            
+            if (error) { container.innerHTML = '<div class="empty-state">Error loading posts</div>'; return; }
+            if (!posts || posts.length === 0) { container.innerHTML = '<div class="empty-state">No posts to moderate</div>'; return; }
+            
+            container.innerHTML = posts.map(post => `
+                <div class="content-card" data-id="${post.id}" data-type="post">
+                    <div class="content-header">
+                        <div class="content-author">
+                            <div class="author-avatar">${(post.users?.display_name || post.users?.username || 'U').charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div class="author-name">${escapeHtml(post.users?.display_name || post.users?.username || 'Unknown')}</div>
+                                <div class="author-username">@${escapeHtml(post.users?.username || 'unknown')}</div>
+                            </div>
+                        </div>
+                        <div class="content-time">${formatTimeAgo(post.created_at)}</div>
+                    </div>
+                    ${post.title ? `<div class="content-title">${escapeHtml(post.title)}</div>` : ''}
+                    <div class="content-body">${escapeHtml(post.content.substring(0, 300))}${post.content.length > 300 ? '...' : ''}</div>
+                    <div class="action-buttons">
+                        <button class="action-btn hide" data-action="hide" data-id="${post.id}"><i class="fas fa-eye-slash"></i> Hide</button>
+                        <button class="action-btn delete" data-action="delete" data-id="${post.id}"><i class="fas fa-trash"></i> Delete</button>
+                        <button class="action-btn warn" data-action="warn" data-user-id="${post.user_id}"><i class="fas fa-exclamation-triangle"></i> Warn User</button>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            const { data: comments, error } = await _supabase
+                .from('comments')
+                .select('*, users!comments_user_id_fkey(id, username, display_name, avatar_url), posts!comments_post_id_fkey(id, title)')
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(50);
+            
+            if (error) { container.innerHTML = '<div class="empty-state">Error loading comments</div>'; return; }
+            if (!comments || comments.length === 0) { container.innerHTML = '<div class="empty-state">No comments to moderate</div>'; return; }
+            
+            container.innerHTML = comments.map(comment => `
+                <div class="content-card" data-id="${comment.id}" data-type="comment">
+                    <div class="content-header">
+                        <div class="content-author">
+                            <div class="author-avatar">${(comment.users?.display_name || comment.users?.username || 'U').charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div class="author-name">${escapeHtml(comment.users?.display_name || comment.users?.username || 'Unknown')}</div>
+                                <div class="author-username">@${escapeHtml(comment.users?.username || 'unknown')}</div>
+                            </div>
+                        </div>
+                        <div class="content-time">${formatTimeAgo(comment.created_at)}</div>
+                    </div>
+                    <div class="content-body">${escapeHtml(comment.content.substring(0, 300))}${comment.content.length > 300 ? '...' : ''}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">On post: ${escapeHtml(comment.posts?.title || 'Untitled')}</div>
+                    <div class="action-buttons">
+                        <button class="action-btn hide" data-action="hide" data-id="${comment.id}"><i class="fas fa-eye-slash"></i> Hide</button>
+                        <button class="action-btn delete" data-action="delete" data-id="${comment.id}"><i class="fas fa-trash"></i> Delete</button>
+                        <button class="action-btn warn" data-action="warn" data-user-id="${comment.user_id}"><i class="fas fa-exclamation-triangle"></i> Warn User</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Add event listeners
+        document.querySelectorAll('[data-action="hide"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const type = btn.closest('.content-card')?.dataset.type;
+                const table = type === 'post' ? 'posts' : 'comments';
+                await _supabase.from(table).update({ status: 'hidden' }).eq('id', id);
+                showToast('Content hidden', 'success');
+                loadContent();
+            });
+        });
+        
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Permanently delete this content?')) return;
+                const id = btn.dataset.id;
+                const type = btn.closest('.content-card')?.dataset.type;
+                const table = type === 'post' ? 'posts' : 'comments';
+                await _supabase.from(table).update({ status: 'deleted' }).eq('id', id);
+                showToast('Content deleted', 'success');
+                loadContent();
+            });
+        });
+        
+        document.querySelectorAll('[data-action="warn"]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const userId = btn.dataset.userId;
+                const warnReason = prompt('Enter warning reason:');
+                if (warnReason) {
+                    await _supabase.from('notifications').insert({
+                        user_id: userId,
+                        type: 'system',
+                        content: `⚠️ Warning: ${warnReason}`,
+                        created_at: new Date().toISOString()
+                    });
+                    showToast('Warning sent to user', 'success');
+                }
+            });
+        });
+    }
+    
+    document.querySelectorAll('.mod-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentType = tab.dataset.type;
+            loadContent();
+        });
+    });
+    
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const page = item.dataset.page;
+            if (page && page !== 'moderation') {
+                window.location.href = `${page}.html`;
+            }
+        });
+    });
+    
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    mobileMenuBtn?.addEventListener('click', () => sidebar.classList.toggle('open'));
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        await _supabase.auth.signOut();
+        window.location.href = 'index.html';
+    });
+    
+    async function init() {
+        if (!await checkAuth()) return;
+        await loadContent();
+    }
+    init();
+})();
+</script>
+</body>
+</html>

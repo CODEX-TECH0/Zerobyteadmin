@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Broadcasts - Admin | ZERØBYTE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0B1220;
+            --bg-secondary: #111827;
+            --bg-glass: rgba(17, 24, 39, 0.7);
+            --bg-glass-hover: rgba(31, 41, 55, 0.8);
+            --bg-glass-solid: rgba(17, 24, 39, 0.95);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --primary: #8B5CF6;
+            --primary-hover: #7C3AED;
+            --primary-soft: rgba(139, 92, 246, 0.15);
+            --error: #EF4444;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #F8FAFC;
+            --bg-glass-solid: rgba(255, 255, 255, 0.95);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border-glass: rgba(0, 0, 0, 0.1);
+        }
+        
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); }
+        
+        .animated-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; overflow: hidden; }
+        .animated-bg::before { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%); animation: rotate 40s linear infinite; }
+        .animated-bg::after { content: ''; position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; background: radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%); animation: rotate-reverse 50s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes rotate-reverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+        
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--bg-glass-solid); backdrop-filter: blur(12px); border-right: 1px solid var(--border-glass); position: fixed; left: 0; top: 0; bottom: 0; overflow-y: auto; transition: all 0.3s; z-index: 100; }
+        .sidebar-header { padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-subtle); }
+        .sidebar-logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--info)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sidebar-nav { padding: 1rem 0; }
+        .sidebar-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .sidebar-item:hover { background: var(--bg-glass); color: var(--text-primary); }
+        .sidebar-item.active { background: var(--primary-soft); color: var(--primary); border-right: 3px solid var(--primary); }
+        .sidebar-item i { width: 20px; font-size: 1rem; }
+        
+        .main-content { flex: 1; margin-left: 260px; padding: 1.5rem; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); }
+        .page-title { font-size: 1.5rem; font-weight: 700; }
+        .admin-info { display: flex; align-items: center; gap: 1rem; }
+        .logout-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem; }
+        .logout-btn:hover { color: var(--error); }
+        
+        .create-card { background: var(--bg-glass-solid); border: 1px solid var(--border-glass); border-radius: var(--radius-2xl); padding: 1.5rem; margin-bottom: 2rem; }
+        .create-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 0.75rem; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-lg); color: var(--text-primary); font-family: inherit; }
+        .form-textarea { resize: vertical; min-height: 100px; }
+        .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .form-row .form-group { flex: 1; }
+        .btn-primary { padding: 0.75rem 1.5rem; background: var(--primary); border: none; border-radius: var(--radius-xl); color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        
+        .broadcasts-list { background: var(--bg-glass-solid); border: 1px solid var(--border-glass); border-radius: var(--radius-2xl); overflow: hidden; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-subtle); font-weight: 600; color: var(--text-muted); }
+        .broadcast-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-subtle); transition: background 0.2s; }
+        .broadcast-item:hover { background: var(--bg-glass); }
+        .broadcast-info { flex: 1; }
+        .broadcast-title { font-weight: 600; margin-bottom: 0.25rem; }
+        .broadcast-content { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .broadcast-meta { display: flex; gap: 1rem; font-size: 0.7rem; color: var(--text-muted); }
+        .priority-badge { padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.7rem; font-weight: 600; }
+        .priority-badge.low { background: rgba(107, 114, 128, 0.2); color: var(--text-muted); }
+        .priority-badge.normal { background: rgba(59, 130, 246, 0.2); color: var(--info); }
+        .priority-badge.high { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .priority-badge.urgent { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .icon-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; transition: color 0.2s; }
+        .icon-btn:hover { color: var(--primary); }
+        .icon-btn.danger:hover { color: var(--error); }
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+        
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-secondary); border-left: 4px solid var(--primary); padding: 0.75rem 1.25rem; border-radius: 8px; z-index: 1100; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); width: 280px; z-index: 200; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .mobile-menu-btn { display: block; } .form-row { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg"></div>
+
+<div class="admin-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-shield-alt"></i> ZERØBYTE<br><span style="font-size: 0.75rem;">Admin Panel</span></div></div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-item" href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a class="sidebar-item" href="users.html"><i class="fas fa-users"></i> Users</a>
+            <a class="sidebar-item" href="moderation.html"><i class="fas fa-gavel"></i> Moderation</a>
+            <a class="sidebar-item" href="reports.html"><i class="fas fa-flag"></i> Reports</a>
+            <a class="sidebar-item active" href="broadcasts.html"><i class="fas fa-bullhorn"></i> Broadcasts</a>
+            <a class="sidebar-item" href="verification.html"><i class="fas fa-check-circle"></i> Verification</a>
+            <a class="sidebar-item" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a class="sidebar-item" href="system-health.html"><i class="fas fa-heartbeat"></i> System Health</a>
+            <a class="sidebar-item" href="permissions.html"><i class="fas fa-key"></i> Permissions</a>
+        </nav>
+    </aside>
+    
+    <main class="main-content">
+        <div class="top-bar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+            <h1 class="page-title">System Broadcasts</h1>
+            <div class="admin-info"><span id="adminName">Admin</span><button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button></div>
+        </div>
+        
+        <!-- Create Broadcast -->
+        <div class="create-card">
+            <div class="create-title"><i class="fas fa-bullhorn"></i> Create New Broadcast</div>
+            <div class="form-group"><label class="form-label">Title</label><input type="text" id="broadcastTitle" class="form-input" placeholder="Announcement title"></div>
+            <div class="form-group"><label class="form-label">Message</label><textarea id="broadcastMessage" class="form-textarea" placeholder="Broadcast message content..."></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Priority</label><select id="broadcastPriority" class="form-select"><option value="low">Low</option><option value="normal" selected>Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+                <div class="form-group"><label class="form-label">Target Audience</label><select id="broadcastTarget" class="form-select"><option value="all">All Users</option><option value="admins">Admins Only</option><option value="moderators">Moderators Only</option></select></div>
+            </div>
+            <button class="btn-primary" id="sendBroadcastBtn"><i class="fas fa-paper-plane"></i> Send Broadcast</button>
+        </div>
+        
+        <!-- Broadcast History -->
+        <div class="broadcasts-list">
+            <div class="list-header"><span>Recent Broadcasts</span><span>Actions</span></div>
+            <div id="broadcastsList"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+    const SUPABASE_URL = 'https://tzfnmcbegbuwuzkqdphy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6Zm5tY2JlZ2J1d3V6a3FkcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDM3NTEsImV4cCI6MjA5NTI3OTc1MX0.RQJIfVX_HB-4mtcqmZHrowyFXyGJTxoL6wNj6Y5R6Hk';
+    
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let currentUserId = null;
+    
+    function showToast(m, t) { const toast = document.createElement('div'); toast.className = 'toast'; toast.innerHTML = `<i class="fas ${t === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${m}`; document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+    function escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    function formatDate(d) { return new Date(d).toLocaleDateString(); }
+    
+    async function checkAuth() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) { window.location.href = 'index.html'; return false; }
+        currentUserId = session.user.id;
+        const { data: user } = await _supabase.from('users').select('*').eq('id', currentUserId).single();
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) { showToast('Access denied.', 'error'); setTimeout(() => window.location.href = 'index.html', 1500); return false; }
+        document.getElementById('adminName').textContent = user.display_name || user.username || 'Admin';
+        return true;
+    }
+    
+    async function loadBroadcasts() {
+        const { data, error } = await _supabase.from('broadcasts').select('*').order('created_at', { ascending: false });
+        const container = document.getElementById('broadcastsList');
+        if (error) { container.innerHTML = '<div class="empty-state">Error loading broadcasts</div>'; return; }
+        if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No broadcasts yet</div>'; return; }
+        container.innerHTML = data.map(b => `<div class="broadcast-item" data-id="${b.id}"><div class="broadcast-info"><div class="broadcast-title">${escapeHtml(b.title)}</div><div class="broadcast-content">${escapeHtml(b.content.substring(0, 100))}${b.content.length > 100 ? '...' : ''}</div><div class="broadcast-meta"><span><i class="fas fa-calendar"></i> ${formatDate(b.created_at)}</span><span><i class="fas fa-users"></i> ${b.target_roles || 'All users'}</span><span class="priority-badge ${b.priority}">${b.priority.toUpperCase()}</span></div></div><div class="broadcast-actions"><button class="icon-btn danger" data-action="delete" data-id="${b.id}"><i class="fas fa-trash"></i></button></div></div>`).join('');
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', async () => { if (!confirm('Delete this broadcast?')) return; await _supabase.from('broadcasts').delete().eq('id', btn.dataset.id); showToast('Broadcast deleted', 'success'); loadBroadcasts(); }));
+    }
+    
+    async function sendBroadcast() {
+        const title = document.getElementById('broadcastTitle').value.trim();
+        const content = document.getElementById('broadcastMessage').value.trim();
+        const priority = document.getElementById('broadcastPriority').value;
+        const target = document.getElementById('broadcastTarget').value;
+        if (!title || !content) { showToast('Please enter both title and message', 'warning'); return; }
+        const targetRoles = target === 'all' ? null : [target];
+        const { error } = await _supabase.from('broadcasts').insert({ title, content, priority, target_roles: targetRoles, created_by: currentUserId, created_at: new Date().toISOString() });
+        if (error) showToast('Failed to send broadcast', 'error');
+        else { showToast('Broadcast sent successfully!', 'success'); document.getElementById('broadcastTitle').value = ''; document.getElementById('broadcastMessage').value = ''; loadBroadcasts(); }
+    }
+    
+    document.getElementById('sendBroadcastBtn')?.addEventListener('click', sendBroadcast);
+    document.querySelectorAll('.sidebar-item').forEach(i => i.addEventListener('click', (e) => { const p = i.dataset.page; if (p && p !== 'broadcasts') window.location.href = `${p}.html`; }));
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn'), sidebar = document.getElementById('sidebar');
+    mobileMenuBtn?.addEventListener('click', () => sidebar.classList.toggle('open'));
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => { await _supabase.auth.signOut(); window.location.href = 'index.html'; });
+    async function init() { if (!await checkAuth()) return; loadBroadcasts(); }
+    init();
+})();
+</script>
+</body>
+</html>
