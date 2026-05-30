@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Connection Monitor - Admin | ZERØBYTE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0B1220;
+            --bg-secondary: #111827;
+            --bg-glass: rgba(17, 24, 39, 0.7);
+            --bg-glass-hover: rgba(31, 41, 55, 0.8);
+            --bg-glass-solid: rgba(17, 24, 39, 0.95);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --primary: #8B5CF6;
+            --primary-hover: #7C3AED;
+            --primary-soft: rgba(139, 92, 246, 0.15);
+            --success: #10B981;
+            --error: #EF4444;
+            --warning: #F59E0B;
+            --info: #3B82F6;
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #F8FAFC;
+            --bg-glass-solid: rgba(255, 255, 255, 0.95);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --border-glass: rgba(0, 0, 0, 0.1);
+            --primary: #7C3AED;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            animation: rotate 40s linear infinite;
+        }
+        
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+            animation: rotate-reverse 50s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotate-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        
+        /* Admin Layout */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border-glass);
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .sidebar-item:hover {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+        }
+        
+        .sidebar-item.active {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-right: 3px solid var(--primary);
+        }
+        
+        .sidebar-item i {
+            width: 20px;
+            font-size: 1rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 1.5rem;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: color 0.2s;
+        }
+        
+        .logout-btn:hover {
+            color: var(--error);
+        }
+        
+        /* Stats Summary Cards */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .summary-card {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .summary-card.red {
+            border-top: 4px solid var(--error);
+        }
+        
+        .summary-card.yellow {
+            border-top: 4px solid var(--warning);
+        }
+        
+        .summary-card.green {
+            border-top: 4px solid var(--success);
+        }
+        
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .summary-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        /* Refresh Button */
+        .refresh-container {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .refresh-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .refresh-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .auto-refresh-indicator {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        
+        /* User List Sections */
+        .users-section {
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-subtle);
+        }
+        
+        .section-header.red {
+            border-bottom-color: var(--error);
+        }
+        
+        .section-header.yellow {
+            border-bottom-color: var(--warning);
+        }
+        
+        .section-header.green {
+            border-bottom-color: var(--success);
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .section-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-xl);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .section-badge.red {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+        
+        .section-badge.yellow {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .section-badge.green {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        /* Users Grid */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        /* User Card */
+        .user-card {
+            background: var(--bg-glass-solid);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-soft);
+        }
+        
+        .user-card.red {
+            border-left: 4px solid var(--error);
+        }
+        
+        .user-card.yellow {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .user-card.green {
+            border-left: 4px solid var(--success);
+        }
+        
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--info));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .user-username {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        
+        .user-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .latency-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-xl);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .latency-badge.red {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+        
+        .latency-badge.yellow {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        .latency-badge.green {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .latency-value {
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-glass);
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Loading Skeleton */
+        .skeleton {
+            background: var(--bg-glass);
+            border-radius: var(--radius-lg);
+            height: 80px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+                z-index: 200;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg"></div>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-shield-alt"></i> ZERØBYTE<br>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">Admin Panel</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="sidebar-item" href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a class="sidebar-item" href="users.html"><i class="fas fa-users"></i> Users</a>
+            <a class="sidebar-item" href="moderation.html"><i class="fas fa-gavel"></i> Moderation</a>
+            <a class="sidebar-item" href="reports.html"><i class="fas fa-flag"></i> Reports</a>
+            <a class="sidebar-item" href="broadcasts.html"><i class="fas fa-bullhorn"></i> Broadcasts</a>
+            <a class="sidebar-item" href="verification.html"><i class="fas fa-check-circle"></i> Verification</a>
+            <a class="sidebar-item" href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a>
+            <a class="sidebar-item" href="system-health.html"><i class="fas fa-heartbeat"></i> System Health</a>
+            <a class="sidebar-item active" href="connection-monitor.html"><i class="fas fa-wifi"></i> Connection Monitor</a>
+            <a class="sidebar-item" href="permissions.html"><i class="fas fa-key"></i> Permissions</a>
+        </nav>
+    </aside>
+    
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; display: none;"></div>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="top-bar">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">Connection Quality Monitor</h1>
+            <div class="admin-info">
+                <div class="admin-avatar" id="adminAvatar">A</div>
+                <span id="adminName">Admin</span>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="summary-stats">
+            <div class="summary-card red">
+                <div class="summary-number" id="redCount">0</div>
+                <div class="summary-label">🔴 Poor Connection (>500ms)</div>
+            </div>
+            <div class="summary-card yellow">
+                <div class="summary-number" id="yellowCount">0</div>
+                <div class="summary-label">🟡 Acceptable (200-500ms)</div>
+            </div>
+            <div class="summary-card green">
+                <div class="summary-number" id="greenCount">0</div>
+                <div class="summary-label">🟢 Good (<200ms)</div>
+            </div>
+        </div>
+        
+        <!-- Refresh Controls -->
+        <div class="refresh-container">
+            <button class="refresh-btn" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i> Test All Users
+            </button>
+            <div class="auto-refresh-indicator">
+                <i class="fas fa-clock"></i> Auto-refreshes every 30 seconds
+            </div>
+        </div>
+        
+        <!-- RED Section (Poor Connection) -->
+        <div class="users-section">
+            <div class="section-header red">
+                <i class="fas fa-exclamation-triangle" style="color: var(--error);"></i>
+                <span class="section-title">Poor Connection</span>
+                <span class="section-badge red" id="redBadge">Needs Attention</span>
+            </div>
+            <div class="users-grid" id="redUsersList">
+                <div class="skeleton"></div>
+            </div>
+        </div>
+        
+        <!-- YELLOW Section (Acceptable) -->
+        <div class="users-section">
+            <div class="section-header yellow">
+                <i class="fas fa-clock" style="color: var(--warning);"></i>
+                <span class="section-title">Acceptable Connection</span>
+                <span class="section-badge yellow" id="yellowBadge">Monitor</span>
+            </div>
+            <div class="users-grid" id="yellowUsersList">
+                <div class="skeleton"></div>
+            </div>
+        </div>
+        
+        <!-- GREEN Section (Good Connection) -->
+        <div class="users-section">
+            <div class="section-header green">
+                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                <span class="section-title">Good Connection</span>
+                <span class="section-badge green" id="greenBadge">Optimal</span>
+            </div>
+            <div class="users-grid" id="greenUsersList">
+                <div class="skeleton"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ========================================
+// ZERØBYTE - CONNECTION QUALITY MONITOR
+// Tracks user latency (Red >500ms, Yellow 200-500ms, Green <200ms)
+// ========================================
+
+(function() {
+    const SUPABASE_URL = 'https://tzfnmcbegbuwuzkqdphy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6Zm5tY2JlZ2J1d3V6a3FkcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDM3NTEsImV4cCI6MjA5NTI3OTc1MX0.RQJIfVX_HB-4mtcqmZHrowyFXyGJTxoL6wNj6Y5R6Hk';
+    
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    let currentUserId = null;
+    let currentUser = null;
+    let refreshInterval = null;
+    let userLatencies = [];
+    
+    // DOM Elements
+    const redUsersList = document.getElementById('redUsersList');
+    const yellowUsersList = document.getElementById('yellowUsersList');
+    const greenUsersList = document.getElementById('greenUsersList');
+    const redCountSpan = document.getElementById('redCount');
+    const yellowCountSpan = document.getElementById('yellowCount');
+    const greenCountSpan = document.getElementById('greenCount');
+    const refreshBtn = document.getElementById('refreshBtn');
+    
+    function showToast(message, type = 'info') {
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) existingToast.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        const icon = type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+        toast.innerHTML = `<i class="fas ${icon}" style="margin-right: 0.5rem;"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function getLatencyCategory(latency) {
+        if (latency > 500) return 'red';
+        if (latency >= 200) return 'yellow';
+        return 'green';
+    }
+    
+    function getLatencyText(latency) {
+        if (latency > 500) return 'Poor';
+        if (latency >= 200) return 'Acceptable';
+        return 'Good';
+    }
+    
+    function displayAvatar(container, avatarUrl, name) {
+        if (!container) return;
+        if (avatarUrl && avatarUrl.startsWith('http')) {
+            container.innerHTML = `<img src="${avatarUrl}" alt="avatar" onerror="this.onerror=null; this.parentElement.innerHTML='${escapeHtml(name.charAt(0).toUpperCase())}';">`;
+        } else {
+            const initial = (name || 'U').charAt(0).toUpperCase();
+            container.innerHTML = initial;
+        }
+    }
+    
+    async function checkAuth() {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (!session) {
+            window.location.href = 'index.html';
+            return false;
+        }
+        currentUserId = session.user.id;
+        
+        const { data: user } = await _supabase.from('users').select('*').eq('id', currentUserId).single();
+        
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            showToast('Access denied. Admin privileges required.', 'error');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return false;
+        }
+        
+        currentUser = user;
+        document.getElementById('adminName').textContent = user.display_name || user.username || 'Admin';
+        document.getElementById('adminAvatar').textContent = (user.display_name || user.username || 'A').charAt(0).toUpperCase();
+        return true;
+    }
+    
+    async function testUserLatency(userId) {
+        const start = Date.now();
+        try {
+            // Simple query to test connection speed
+            await _supabase.from('users').select('id').eq('id', userId).limit(1);
+            const latency = Date.now() - start;
+            return { userId, latency, success: true };
+        } catch (error) {
+            return { userId, latency: 9999, success: false, error: error.message };
+        }
+    }
+    
+    async function testAllUsersLatency() {
+        showToast('Testing all user connections...', 'info');
+        
+        // Get all users
+        const { data: users, error } = await _supabase
+            .from('users')
+            .select('id, username, display_name, avatar_url, verification_badge, role')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            showToast('Failed to fetch users', 'error');
+            return;
+        }
+        
+        if (!users || users.length === 0) {
+            showToast('No users found', 'warning');
+            return;
+        }
+        
+        // Test each user's latency (limit to 50 to avoid rate limiting)
+        const testUsers = users.slice(0, 50);
+        const results = [];
+        
+        for (const user of testUsers) {
+            const result = await testUserLatency(user.id);
+            results.push({
+                ...user,
+                latency: result.latency,
+                success: result.success,
+                category: getLatencyCategory(result.latency)
+            });
+            // Small delay to avoid overwhelming the server
+            await new Promise(r => setTimeout(r, 100));
+        }
+        
+        userLatencies = results;
+        renderUsersByCategory();
+        updateSummaryCounts();
+        
+        showToast(`Tested ${results.length} users`, 'success');
+    }
+    
+    function renderUsersByCategory() {
+        // Separate users by category
+        const redUsers = userLatencies.filter(u => u.category === 'red');
+        const yellowUsers = userLatencies.filter(u => u.category === 'yellow');
+        const greenUsers = userLatencies.filter(u => u.category === 'green');
+        
+        // Render RED users (poor connection - top)
+        if (redUsers.length === 0) {
+            redUsersList.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i> No users with poor connection</div>';
+        } else {
+            redUsersList.innerHTML = redUsers.map(user => createUserCard(user, 'red')).join('');
+        }
+        
+        // Render YELLOW users (acceptable - middle)
+        if (yellowUsers.length === 0) {
+            yellowUsersList.innerHTML = '<div class="empty-state"><i class="fas fa-smile"></i> No users in this range</div>';
+        } else {
+            yellowUsersList.innerHTML = yellowUsers.map(user => createUserCard(user, 'yellow')).join('');
+        }
+        
+        // Render GREEN users (good - bottom)
+        if (greenUsers.length === 0) {
+            greenUsersList.innerHTML = '<div class="empty-state"><i class="fas fa-tachometer-alt"></i> No users with good connection</div>';
+        } else {
+            greenUsersList.innerHTML = greenUsers.map(user => createUserCard(user, 'green')).join('');
+        }
+        
+        // Add avatar images
+        document.querySelectorAll('.user-card').forEach(card => {
+            const userId = card.dataset.userId;
+            const user = userLatencies.find(u => u.id === userId);
+            if (user) {
+                const avatarContainer = card.querySelector('.user-avatar');
+                if (avatarContainer) {
+                    displayAvatar(avatarContainer, user.avatar_url, user.display_name || user.username);
+                }
+            }
+        });
+        
+        // Add click handlers to view user profile
+        document.querySelectorAll('.user-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const userId = card.dataset.userId;
+                window.open(`../user/profile.html?id=${userId}`, '_blank');
+            });
+        });
+    }
+    
+    function createUserCard(user, category) {
+        const displayName = user.display_name || user.username;
+        const latencyText = getLatencyText(user.latency);
+        const roleBadge = user.role === 'superadmin' ? '👑 Super Admin' : (user.role === 'admin' ? '🛡️ Admin' : (user.role === 'moderator' ? '⚙️ Moderator' : '👤 User'));
+        const latencyMs = user.latency >= 9999 ? 'Timeout' : `${user.latency}ms`;
+        
+        return `
+            <div class="user-card ${category}" data-user-id="${user.id}">
+                <div class="user-header">
+                    <div class="user-avatar"></div>
+                    <div class="user-info">
+                        <div class="user-name">${escapeHtml(displayName)}</div>
+                        <div class="user-username">@${escapeHtml(user.username)}</div>
+                    </div>
+                    <div class="latency-badge ${category}">
+                        <i class="fas ${category === 'red' ? 'fa-exclamation-triangle' : category === 'yellow' ? 'fa-clock' : 'fa-check-circle'}"></i>
+                        ${latencyText}
+                    </div>
+                </div>
+                <div class="user-stats">
+                    <span><i class="fas fa-tachometer-alt"></i> ${latencyMs}</span>
+                    <span><i class="fas ${user.role === 'superadmin' ? 'fa-crown' : user.role === 'admin' ? 'fa-shield-alt' : 'fa-user'}"></i> ${roleBadge}</span>
+                </div>
+                <div class="user-stats">
+                    <span><i class="fas fa-chart-line"></i> ${category === 'red' ? 'Needs optimization' : category === 'yellow' ? 'Acceptable' : 'Optimal'}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    function updateSummaryCounts() {
+        const redCount = userLatencies.filter(u => u.category === 'red').length;
+        const yellowCount = userLatencies.filter(u => u.category === 'yellow').length;
+        const greenCount = userLatencies.filter(u => u.category === 'green').length;
+        
+        redCountSpan.textContent = redCount;
+        yellowCountSpan.textContent = yellowCount;
+        greenCountSpan.textContent = greenCount;
+        
+        // Update badges
+        document.getElementById('redBadge').textContent = `${redCount} user${redCount !== 1 ? 's' : ''} - Needs Attention`;
+        document.getElementById('yellowBadge').textContent = `${yellowCount} user${yellowCount !== 1 ? 's' : ''} - Monitor`;
+        document.getElementById('greenBadge').textContent = `${greenCount} user${greenCount !== 1 ? 's' : ''} - Optimal`;
+    }
+    
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => {
+            testAllUsersLatency();
+        }, 30000); // Every 30 seconds
+    }
+    
+    refreshBtn?.addEventListener('click', () => {
+        testAllUsersLatency();
+    });
+    
+    // Navigation
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            const href = item.getAttribute('href');
+            if (href && href !== 'connection-monitor.html') {
+                window.location.href = href;
+            }
+        });
+    });
+    
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    
+    mobileMenuBtn?.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        sidebarOverlay.style.display = 'block';
+    });
+    
+    sidebarOverlay?.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        sidebarOverlay.style.display = 'none';
+    });
+    
+    // Logout
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        await _supabase.auth.signOut();
+        window.location.href = 'index.html';
+    });
+    
+    // Initialization
+    async function init() {
+        const authed = await checkAuth();
+        if (!authed) return;
+        
+        await testAllUsersLatency();
+        startAutoRefresh();
+    }
+    
+    init();
+})();
+</script>
+</body>
+</html>
